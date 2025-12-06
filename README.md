@@ -1,36 +1,55 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Bookie
 
-## Getting Started
+**Bookie** is a web-based reading platform that allows users to manage, track, and explore books across leisure and research collections. It features an AI librarian for intelligent recommendations and interactions, user profiles with customizable avatars, and a clean, interactive library interface.
 
-First, run the development server:
+---
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## Table of Contents
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+- [Features](#features)
+- [Tech Stack](#tech-stack)
+- [Getting Started](#getting-started)
+- [Project Structure](#project-structure)
+- [Usage](#usage)
+- [Future Enhancements](#future-enhancements)
+- [License](#license)
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+---
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Features
 
-## Learn More
+- User authentication and profile management (Supabase Auth)
+- Customizable avatar builder
+- Leisure and research book collections
+- Favorites and pinned books
+- AI librarian integration for recommendations
+- Library UI with toggles between leisure and study collections
+- Responsive design for desktop and mobile
+- Access control: only authenticated users can access dashboards
+- Real-time chat system (front-end built; AI librarian integrated)
 
-To learn more about Next.js, take a look at the following resources:
+---
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Tech Stack
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+**Frontend:**
+- React with TypeScript
+- Next.js (app & API routes)
+- Tailwind CSS for styling
 
-## Deploy on Vercel
+**Backend & Database:**
+- Supabase (PostgreSQL, Auth)
+- Supabase Realtime for chat (front-end only in this version)
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+**Authentication:**
+- Supabase Auth
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+**Deployment:**
+- Vercel
+
+**Other Libraries & Tools:**
+- Lucide React for icons
+- Next/Image for optimized images
+- JSONB for storing structured data in Supabase
+- Custom components: Sidebar, LeisureLibrary, ResearchLibrary, AvatarBuilder
+
