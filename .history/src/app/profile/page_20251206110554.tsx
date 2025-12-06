@@ -28,16 +28,6 @@ interface UserProfile {
   level?: number;
 }
 
-interface FavoriteBook {
-  book_id: string;
-  books: {
-    id: string;
-    title: string;
-    author?: string;
-    cover?: string;
-  } | null;
-}
-
 export default function ProfilePage() {
   const router = useRouter();
 
@@ -47,8 +37,6 @@ export default function ProfilePage() {
   const [tempUsername, setTempUsername] = useState("");
   const [tempBio, setTempBio] = useState("");
   const [avatarPopup, setAvatarPopup] = useState(false);
-  const [favoriteBooks, setFavoriteBooks] = useState<FavoriteBook[]>([]);
-  const [loadingFavorites, setLoadingFavorites] = useState(true);
 
   useEffect(() => {
     const loadUser = async () => {
@@ -70,44 +58,10 @@ export default function ProfilePage() {
         setTempUsername(typedProfile.username || "");
         setTempBio(typedProfile.bio || "");
       }
-
-      // Load favorite books
-      loadFavoriteBooks(authUser.id);
     };
 
     loadUser();
   }, []);
-
-  const loadFavoriteBooks = async (userId: string) => {
-    setLoadingFavorites(true);
-    const { data, error } = await supabase
-      .from("user_favorites")
-      .select(`
-        book_id,
-        books!inner (
-          id,
-          title,
-          author,
-          cover
-        )
-      `)
-      .eq("user_id", userId)
-      .order("created_at", { ascending: false })
-      .limit(6);
-
-    if (error) {
-      console.error("Error loading favorites:", error);
-    } else if (data) {
-      // Map and type the data properly
-      const favorites = data.map(item => ({
-        book_id: item.book_id,
-        books: Array.isArray(item.books) ? item.books[0] : item.books
-      })).filter(item => item.books !== null && item.books !== undefined) as FavoriteBook[];
-      
-      setFavoriteBooks(favorites);
-    }
-    setLoadingFavorites(false);
-  };
 
   if (!user)
     return (
@@ -154,9 +108,6 @@ export default function ProfilePage() {
       router.push("/");
     }
   };
-
-  // Render empty slots for remaining favorites
-  const emptySlots = Math.max(0, 6 - favoriteBooks.length);
 
   return (
     <div className="min-h-screen flex bookieBackground">
@@ -330,42 +281,16 @@ export default function ProfilePage() {
                 <label className="text-gray-500 uppercase font-semibold text-xs mb-1 block">
                   Favorite Books
                 </label>
-                {loadingFavorites ? (
-                  <p className="text-gray-500 text-xs">Loading favorites...</p>
-                ) : (
-                  <div className="flex gap-1 overflow-x-auto pb-1">
-                    {/* Display actual favorite books */}
-                    {favoriteBooks.map((fav) => (
-                      <div
-                        key={fav.book_id}
-                        className="w-16 h-20 flex-shrink-0 rounded-lg overflow-hidden border-2 border-gray-300 hover:border-[#f67129] transition cursor-pointer relative group"
-                        title={fav.books?.title || 'Unknown'}
-                      >
-                        {fav.books?.cover ? (
-                          <img
-                            src={fav.books.cover}
-                            alt={fav.books.title}
-                            className="w-full h-full object-cover"
-                          />
-                        ) : (
-                          <div className="w-full h-full bg-gradient-to-br from-orange-100 to-orange-200 flex items-center justify-center">
-                            <BookOpen size={20} className="text-[#f67129]" />
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                    
-                    {/* Display empty slots */}
-                    {Array.from({ length: emptySlots }).map((_, i) => (
-                      <div
-                        key={`empty-${i}`}
-                        className="w-16 h-20 flex-shrink-0 bg-gradient-to-br from-gray-100 to-gray-200 rounded-lg flex items-center justify-center border-2 border-dashed border-gray-300"
-                      >
-                        <BookOpen size={16} className="text-gray-400" />
-                      </div>
-                    ))}
-                  </div>
-                )}
+                <div className="flex gap-1 overflow-x-auto pb-1">
+                  {[1, 2, 3, 4, 5, 6].map((i) => (
+                    <div
+                      key={i}
+                      className="w-8 h-8 flex-shrink-0 bg-gradient-to-br from-gray-100 to-gray-200 rounded-lg flex items-center justify-center border-2 border-dashed border-gray-300 hover:border-[#f67129] transition cursor-pointer"
+                    >
+                      <BookOpen size={16} className="text-gray-400" />
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           </div>

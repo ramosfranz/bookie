@@ -84,7 +84,7 @@ export default function ProfilePage() {
       .from("user_favorites")
       .select(`
         book_id,
-        books!inner (
+        books (
           id,
           title,
           author,
@@ -98,13 +98,8 @@ export default function ProfilePage() {
     if (error) {
       console.error("Error loading favorites:", error);
     } else if (data) {
-      // Map and type the data properly
-      const favorites = data.map(item => ({
-        book_id: item.book_id,
-        books: Array.isArray(item.books) ? item.books[0] : item.books
-      })).filter(item => item.books !== null && item.books !== undefined) as FavoriteBook[];
-      
-      setFavoriteBooks(favorites);
+      // Filter out any favorites where the book was deleted
+      setFavoriteBooks(data.filter(item => item.books !== null) as FavoriteBook[]);
     }
     setLoadingFavorites(false);
   };

@@ -35,7 +35,7 @@ interface FavoriteBook {
     title: string;
     author?: string;
     cover?: string;
-  } | null;
+  };
 }
 
 export default function ProfilePage() {
@@ -84,7 +84,7 @@ export default function ProfilePage() {
       .from("user_favorites")
       .select(`
         book_id,
-        books!inner (
+        books (
           id,
           title,
           author,
@@ -98,13 +98,7 @@ export default function ProfilePage() {
     if (error) {
       console.error("Error loading favorites:", error);
     } else if (data) {
-      // Map and type the data properly
-      const favorites = data.map(item => ({
-        book_id: item.book_id,
-        books: Array.isArray(item.books) ? item.books[0] : item.books
-      })).filter(item => item.books !== null && item.books !== undefined) as FavoriteBook[];
-      
-      setFavoriteBooks(favorites);
+      setFavoriteBooks(data as FavoriteBook[]);
     }
     setLoadingFavorites(false);
   };
@@ -339,9 +333,9 @@ export default function ProfilePage() {
                       <div
                         key={fav.book_id}
                         className="w-16 h-20 flex-shrink-0 rounded-lg overflow-hidden border-2 border-gray-300 hover:border-[#f67129] transition cursor-pointer relative group"
-                        title={fav.books?.title || 'Unknown'}
+                        title={fav.books.title}
                       >
-                        {fav.books?.cover ? (
+                        {fav.books.cover ? (
                           <img
                             src={fav.books.cover}
                             alt={fav.books.title}
