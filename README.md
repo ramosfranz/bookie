@@ -2,19 +2,6 @@
 
 **Bookie** is a web-based reading platform that allows users to manage, track, and explore books across leisure and research collections. It features an AI librarian for intelligent recommendations and interactions, user profiles with customizable avatars, and a clean, interactive library interface.
 
----
-
-## Table of Contents
-
-- [Features](#features)
-- [Tech Stack](#tech-stack)
-- [Getting Started](#getting-started)
-- [Project Structure](#project-structure)
-- [Usage](#usage)
-- [Future Enhancements](#future-enhancements)
-- [License](#license)
-
----
 
 ## Features
 
