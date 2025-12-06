@@ -13,25 +13,22 @@ interface LeisureRow {
 
 // GET handler
 export async function GET(
-  req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  _req: NextRequest,
+  context: { params: { id: string | Promise<string> } }
 ) {
   try {
-    const { id } = await params;
+    const id = await context.params.id;
 
-    let query = supabase.from("leisure_library").select("*");
+    let query = supabase.from<LeisureRow>("leisure_library").select("*");
     if (id && id !== "all") query = query.eq("id", id);
 
     const { data, error } = await query;
 
-    if (error) {
-      return NextResponse.json({ success: false, error: error.message });
-    }
+    if (error) return NextResponse.json({ success: false, error: error.message });
 
     return NextResponse.json({ success: true, data });
   } catch (err) {
-    const message =
-      err instanceof Error ? err.message : "Unknown error occurred";
+    const message = err instanceof Error ? err.message : "Unknown error occurred";
     return NextResponse.json({ success: false, error: message });
   }
 }
@@ -39,22 +36,18 @@ export async function GET(
 // POST handler
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json() as Omit<LeisureRow, "id">;
-    const { user_id, book_id, title, progress, status } = body;
+    const body: Omit<LeisureRow, "id"> = await req.json();
 
     const { data, error } = await supabase
-      .from("leisure_library")
-      .insert([{ user_id, book_id, title, progress, status }])
+      .from<LeisureRow>("leisure_library")
+      .insert([body])
       .select();
 
-    if (error) {
-      return NextResponse.json({ success: false, error: error.message });
-    }
+    if (error) return NextResponse.json({ success: false, error: error.message });
 
     return NextResponse.json({ success: true, data });
   } catch (err) {
-    const message =
-      err instanceof Error ? err.message : "Unknown error occurred";
+    const message = err instanceof Error ? err.message : "Unknown error occurred";
     return NextResponse.json({ success: false, error: message });
   }
 }
@@ -62,52 +55,46 @@ export async function POST(req: NextRequest) {
 // PUT handler
 export async function PUT(
   req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  context: { params: { id: string | Promise<string> } }
 ) {
   try {
-    const { id } = await params;
-    const body = await req.json() as Partial<Omit<LeisureRow, "id">>;
+    const id = await context.params.id;
+    const body: Partial<Omit<LeisureRow, "id">> = await req.json();
 
     const { data, error } = await supabase
-      .from("leisure_library")
+      .from<LeisureRow>("leisure_library")
       .update(body)
       .eq("id", id)
       .select();
 
-    if (error) {
-      return NextResponse.json({ success: false, error: error.message });
-    }
+    if (error) return NextResponse.json({ success: false, error: error.message });
 
     return NextResponse.json({ success: true, data });
   } catch (err) {
-    const message =
-      err instanceof Error ? err.message : "Unknown error occurred";
+    const message = err instanceof Error ? err.message : "Unknown error occurred";
     return NextResponse.json({ success: false, error: message });
   }
 }
 
 // DELETE handler
 export async function DELETE(
-  req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  _req: NextRequest,
+  context: { params: { id: string | Promise<string> } }
 ) {
   try {
-    const { id } = await params;
+    const id = await context.params.id;
 
     const { data, error } = await supabase
-      .from("leisure_library")
+      .from<LeisureRow>("leisure_library")
       .delete()
       .eq("id", id)
       .select();
 
-    if (error) {
-      return NextResponse.json({ success: false, error: error.message });
-    }
+    if (error) return NextResponse.json({ success: false, error: error.message });
 
     return NextResponse.json({ success: true, data });
   } catch (err) {
-    const message =
-      err instanceof Error ? err.message : "Unknown error occurred";
+    const message = err instanceof Error ? err.message : "Unknown error occurred";
     return NextResponse.json({ success: false, error: message });
   }
 }

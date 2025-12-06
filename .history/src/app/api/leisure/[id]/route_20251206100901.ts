@@ -1,25 +1,25 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase/client";
 
-// Define type for research library row
-interface ResearchRow {
+// Define type for your table row
+interface LeisureRow {
   id: string;
   user_id: string;
+  book_id: string;
   title: string;
-  pdf_url?: string;
-  authors?: string;
-  tags?: string[];
+  progress?: number;
+  status?: string;
 }
 
 // GET handler
 export async function GET(
   req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: { id: string } }
 ) {
   try {
-    const { id } = await params;
+    const { id } = params;
 
-    let query = supabase.from("research_library").select("*");
+    let query = supabase.from("leisure_library").select("*");
     if (id && id !== "all") query = query.eq("id", id);
 
     const { data, error } = await query;
@@ -39,12 +39,12 @@ export async function GET(
 // POST handler
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json() as Omit<ResearchRow, "id">;
-    const { user_id, title, pdf_url, authors, tags } = body;
+    const body = await req.json() as Omit<LeisureRow, "id">;
+    const { user_id, book_id, title, progress, status } = body;
 
     const { data, error } = await supabase
-      .from("research_library")
-      .insert([{ user_id, title, pdf_url, authors, tags }])
+      .from("leisure_library")
+      .insert([{ user_id, book_id, title, progress, status }])
       .select();
 
     if (error) {
@@ -62,14 +62,14 @@ export async function POST(req: NextRequest) {
 // PUT handler
 export async function PUT(
   req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: { id: string } }
 ) {
   try {
-    const { id } = await params;
-    const body = await req.json() as Partial<Omit<ResearchRow, "id">>;
+    const { id } = params;
+    const body = await req.json() as Partial<Omit<LeisureRow, "id">>;
 
     const { data, error } = await supabase
-      .from("research_library")
+      .from("leisure_library")
       .update(body)
       .eq("id", id)
       .select();
@@ -89,13 +89,13 @@ export async function PUT(
 // DELETE handler
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: { id: string } }
 ) {
   try {
-    const { id } = await params;
+    const { id } = params;
 
     const { data, error } = await supabase
-      .from("research_library")
+      .from("leisure_library")
       .delete()
       .eq("id", id)
       .select();

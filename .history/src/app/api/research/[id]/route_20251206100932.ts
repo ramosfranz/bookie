@@ -14,10 +14,10 @@ interface ResearchRow {
 // GET handler
 export async function GET(
   req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: { id: string } }
 ) {
   try {
-    const { id } = await params;
+    const { id } = params;
 
     let query = supabase.from("research_library").select("*");
     if (id && id !== "all") query = query.eq("id", id);
@@ -62,10 +62,10 @@ export async function POST(req: NextRequest) {
 // PUT handler
 export async function PUT(
   req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: { id: string } }
 ) {
   try {
-    const { id } = await params;
+    const { id } = params;
     const body = await req.json() as Partial<Omit<ResearchRow, "id">>;
 
     const { data, error } = await supabase
@@ -89,10 +89,10 @@ export async function PUT(
 // DELETE handler
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: { id: string } }
 ) {
   try {
-    const { id } = await params;
+    const { id } = params;
 
     const { data, error } = await supabase
       .from("research_library")
