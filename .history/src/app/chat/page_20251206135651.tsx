@@ -49,10 +49,9 @@ export default function ChatPage() {
   const [showInfoPopup, setShowInfoPopup] = useState(false);
   const [showAvatar, setShowAvatar] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
-  const [aiTyping, setAiTyping] = useState(false);
   const chatEndRef = useRef<HTMLDivElement | null>(null);
 
-  // Fetch contacts and messages from Supabase
+  // Fetch contacts & messages from Supabase
   useEffect(() => {
     async function loadContacts() {
       const { data: contactsData, error: contactsError } = await supabase
@@ -64,6 +63,7 @@ export default function ChatPage() {
         return;
       }
 
+      // Fetch messages for each contact
       const contactsWithMessages = await Promise.all(
         contactsData!.map(async (c: any) => {
           const { data: messagesData } = await supabase
@@ -94,76 +94,56 @@ export default function ChatPage() {
     loadContacts();
   }, []);
 
-  const selectedContact = contacts.find(c => c.id === selectedContactId);
+  const selectedContact = contacts.find(c => c.id === selectedContactId)!;
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [selectedContact?.messages, aiTyping]);
+  }, [selectedContact?.messages]);
 
-  // Send message and handle AI response
-const sendMessage = async (text: string) => {
-  if (!text.trim() || !selectedContactId) return;
+  // Send message
+  const sendMessage = async (text: string) => {
+    if (!text.trim() || !selectedContactId) return;
 
-  const timestamp = new Date().toISOString();
-  const userMessage: Omit<Message, "id"> = {
-    contact_id: selectedContactId,
-    sender: "user",
-    content: text,
-    timestamp,
-  };
+    const timestamp = new Date().toISOString();
+    const message: Omit<Message, "id"> = {
+      contact_id: selectedContactId,
+      sender: "user",
+      content: text,
+      timestamp,
+    };
 
-  try {
-    // Insert user message into Supabase
-    const { data: insertedUser, error: userError } = await supabase
+    const { data: insertedMessage, error } = await supabase
       .from("messages")
-      .insert([userMessage])
+      .insert([message])
       .select();
 
-    if (userError) {
-      console.error("Error sending user message:", userError);
+    if (error) {
+      console.error("Error sending message:", error);
       return;
     }
 
+    // Update local state
     setContacts(prev =>
       prev.map(c =>
         c.id === selectedContactId
-          ? { ...c, messages: [...c.messages, insertedUser![0]] }
+          ? { ...c, messages: [...c.messages, insertedMessage![0]] }
           : c
       )
     );
 
-    // Show AI typing
-    setAiTyping(true);
-
-    // Call Hugging Face API
-    const res = await fetch("/api/chat", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ message: text }),
-    });
-
-    const data = await res.json();
-    console.log("AI Response:", data);
-
-    // NOTE: Use 'data.answer' here, not 'data.reply'
-    if (data.answer) {
+    // Simulate AI Librarian response
+    setTimeout(async () => {
       const aiMessage: Omit<Message, "id"> = {
         contact_id: selectedContactId,
         sender: "other",
-        content: data.answer, // actual AI response
+        content: "🤖 Librarian: Got it!",
         timestamp: new Date().toISOString(),
       };
 
-      // Insert AI message into Supabase
-      const { data: insertedAI, error: aiError } = await supabase
+      const { data: insertedAI } = await supabase
         .from("messages")
         .insert([aiMessage])
         .select();
-
-      if (aiError) {
-        console.error("Error inserting AI message:", aiError);
-        return;
-      }
 
       setContacts(prev =>
         prev.map(c =>
@@ -172,13 +152,8 @@ const sendMessage = async (text: string) => {
             : c
         )
       );
-    }
-  } catch (err) {
-    console.error("Error sending message:", err);
-  } finally {
-    setAiTyping(false);
-  }
-};
+    }, 1000);
+  };
 
   const handleSend = () => {
     sendMessage(newMessage);
@@ -194,21 +169,15 @@ const sendMessage = async (text: string) => {
       <Sidebar activeTab={activeTab} />
 
       <main className="flex flex-1">
-      <ContactSidebar
+        <ContactSidebar
           contacts={contacts}
           selectedContactId={selectedContactId}
-          setSelectedContactId={(id) => {
-            setSelectedContactId(id);
-            setShowAvatar(false);
-          }}
+          setSelectedContactId={id => { setSelectedContactId(id); setShowAvatar(false); }}
           showAddContactPopup={showAddContactPopup}
           setShowAddContactPopup={setShowAddContactPopup}
           isCollapsed={isCollapsed}
           setIsCollapsed={setIsCollapsed}
         />
-
-
-
 
         <div className="flex-1 flex flex-col p-6 h-screen">
           {showAvatar && (
@@ -257,16 +226,7 @@ const sendMessage = async (text: string) => {
             </div>
           </div>
 
-          {/* Chat log */}
-          <div className="flex-1 overflow-y-auto mb-2">
-            <ChatLog messages={selectedContact?.messages || []} />
-            {aiTyping && (
-              <div className="text-gray-500 italic mt-1">A.I. Librarian is typing...</div>
-            )}
-            <div ref={chatEndRef} />
-          </div>
-
-          {/* Input */}
+          <ChatLog messages={selectedContact?.messages || []} />
           <div className="flex gap-2">
             <input
               type="text"
@@ -274,13 +234,11 @@ const sendMessage = async (text: string) => {
               value={newMessage}
               onChange={e => setNewMessage(e.target.value)}
               onKeyPress={handleKeyPress}
-              disabled={aiTyping}
               className="flex-1 px-4 py-2 rounded-lg border outline-none"
             />
             <button
               onClick={handleSend}
               className="pixelButton"
-              disabled={aiTyping}
             >
               Send
             </button>
@@ -288,7 +246,6 @@ const sendMessage = async (text: string) => {
         </div>
       </main>
 
-      {/* Popups */}
       <AddContactPopup
         isOpen={showAddContactPopup}
         onClose={() => setShowAddContactPopup(false)}
@@ -323,7 +280,7 @@ const sendMessage = async (text: string) => {
           members: selectedContact?.members || [],
           sharedHistory: selectedContact?.sharedHistory || [],
         }}
-        allFriends={[]} // pass friends if needed
+        allFriends={[]} // pass your friends here
         onUpdateNicknameOrGroupName={async (newName) => {
           await supabase
             .from("contacts")

@@ -113,7 +113,7 @@ const sendMessage = async (text: string) => {
   };
 
   try {
-    // Insert user message into Supabase
+    // 1️⃣ Insert user message into Supabase
     const { data: insertedUser, error: userError } = await supabase
       .from("messages")
       .insert([userMessage])
@@ -124,6 +124,7 @@ const sendMessage = async (text: string) => {
       return;
     }
 
+    // 2️⃣ Update local state with user message
     setContacts(prev =>
       prev.map(c =>
         c.id === selectedContactId
@@ -132,10 +133,10 @@ const sendMessage = async (text: string) => {
       )
     );
 
-    // Show AI typing
+    // 3️⃣ Show AI typing indicator
     setAiTyping(true);
 
-    // Call Hugging Face API
+    // 4️⃣ Call Hugging Face API via your serverless route
     const res = await fetch("/api/chat", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -145,16 +146,15 @@ const sendMessage = async (text: string) => {
     const data = await res.json();
     console.log("AI Response:", data);
 
-    // NOTE: Use 'data.answer' here, not 'data.reply'
-    if (data.answer) {
+    if (data.reply) {
       const aiMessage: Omit<Message, "id"> = {
         contact_id: selectedContactId,
         sender: "other",
-        content: data.answer, // actual AI response
+        content: data.reply, // ✅ actual AI reply
         timestamp: new Date().toISOString(),
       };
 
-      // Insert AI message into Supabase
+      // 5️⃣ Insert AI message into Supabase
       const { data: insertedAI, error: aiError } = await supabase
         .from("messages")
         .insert([aiMessage])
@@ -165,6 +165,7 @@ const sendMessage = async (text: string) => {
         return;
       }
 
+      // 6️⃣ Update local state with AI message
       setContacts(prev =>
         prev.map(c =>
           c.id === selectedContactId
@@ -194,21 +195,15 @@ const sendMessage = async (text: string) => {
       <Sidebar activeTab={activeTab} />
 
       <main className="flex flex-1">
-      <ContactSidebar
+        <ContactSidebar
           contacts={contacts}
           selectedContactId={selectedContactId}
-          setSelectedContactId={(id) => {
-            setSelectedContactId(id);
-            setShowAvatar(false);
-          }}
+          setSelectedContactId={id => { setSelectedContactId(id); setShowAvatar(false); }}
           showAddContactPopup={showAddContactPopup}
           setShowAddContactPopup={setShowAddContactPopup}
           isCollapsed={isCollapsed}
           setIsCollapsed={setIsCollapsed}
         />
-
-
-
 
         <div className="flex-1 flex flex-col p-6 h-screen">
           {showAvatar && (

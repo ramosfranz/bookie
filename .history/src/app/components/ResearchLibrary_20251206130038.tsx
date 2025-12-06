@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase/client";
-import { BookOpen, Heart, Trash2, X, Pin, Search, Grid, List, Plus, Edit, ArrowLeft, Send } from "lucide-react";
+import { BookOpen, Heart, Trash2, X, Pin, Search, Grid, List, Plus, Edit, ArrowLeft } from "lucide-react";
 import ManualImport from "./ManualImport";
 
 interface ResearchItem {

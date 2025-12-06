@@ -101,84 +101,72 @@ export default function ChatPage() {
   }, [selectedContact?.messages, aiTyping]);
 
   // Send message and handle AI response
-const sendMessage = async (text: string) => {
-  if (!text.trim() || !selectedContactId) return;
+  const sendMessage = async (text: string) => {
+    if (!text.trim() || !selectedContactId) return;
 
-  const timestamp = new Date().toISOString();
-  const userMessage: Omit<Message, "id"> = {
-    contact_id: selectedContactId,
-    sender: "user",
-    content: text,
-    timestamp,
-  };
+    const timestamp = new Date().toISOString();
+    const message: Omit<Message, "id"> = {
+      contact_id: selectedContactId,
+      sender: "user",
+      content: text,
+      timestamp,
+    };
 
-  try {
-    // Insert user message into Supabase
-    const { data: insertedUser, error: userError } = await supabase
+    // Insert user message
+    const { data: insertedMessage, error } = await supabase
       .from("messages")
-      .insert([userMessage])
+      .insert([message])
       .select();
 
-    if (userError) {
-      console.error("Error sending user message:", userError);
+    if (error) {
+      console.error("Error sending message:", error);
       return;
     }
 
     setContacts(prev =>
       prev.map(c =>
         c.id === selectedContactId
-          ? { ...c, messages: [...c.messages, insertedUser![0]] }
+          ? { ...c, messages: [...c.messages, insertedMessage![0]] }
           : c
       )
     );
 
-    // Show AI typing
+    // Call AI route
     setAiTyping(true);
+    try {
+      const res = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: text }),
+      });
+      const data = await res.json();
+      if (data.reply) {
+        const aiMessage: Omit<Message, "id"> = {
+          contact_id: selectedContactId,
+          sender: "other",
+          content: data.reply,
+          timestamp: new Date().toISOString(),
+        };
 
-    // Call Hugging Face API
-    const res = await fetch("/api/chat", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ message: text }),
-    });
+        const { data: insertedAI } = await supabase
+          .from("messages")
+          .insert([aiMessage])
+          .select();
 
-    const data = await res.json();
-    console.log("AI Response:", data);
-
-    // NOTE: Use 'data.answer' here, not 'data.reply'
-    if (data.answer) {
-      const aiMessage: Omit<Message, "id"> = {
-        contact_id: selectedContactId,
-        sender: "other",
-        content: data.answer, // actual AI response
-        timestamp: new Date().toISOString(),
-      };
-
-      // Insert AI message into Supabase
-      const { data: insertedAI, error: aiError } = await supabase
-        .from("messages")
-        .insert([aiMessage])
-        .select();
-
-      if (aiError) {
-        console.error("Error inserting AI message:", aiError);
-        return;
+        setContacts(prev =>
+          prev.map(c =>
+            c.id === selectedContactId
+              ? { ...c, messages: [...c.messages, insertedAI![0]] }
+              : c
+          )
+        );
       }
-
-      setContacts(prev =>
-        prev.map(c =>
-          c.id === selectedContactId
-            ? { ...c, messages: [...c.messages, insertedAI![0]] }
-            : c
-        )
-      );
+    } catch (err) {
+      console.error("Error fetching AI response:", err);
+    } finally {
+      setAiTyping(false);
     }
-  } catch (err) {
-    console.error("Error sending message:", err);
-  } finally {
-    setAiTyping(false);
-  }
-};
+  };
 
   const handleSend = () => {
     sendMessage(newMessage);
@@ -194,21 +182,15 @@ const sendMessage = async (text: string) => {
       <Sidebar activeTab={activeTab} />
 
       <main className="flex flex-1">
-      <ContactSidebar
+        <ContactSidebar
           contacts={contacts}
           selectedContactId={selectedContactId}
-          setSelectedContactId={(id) => {
-            setSelectedContactId(id);
-            setShowAvatar(false);
-          }}
+          setSelectedContactId={id => { setSelectedContactId(id); setShowAvatar(false); }}
           showAddContactPopup={showAddContactPopup}
           setShowAddContactPopup={setShowAddContactPopup}
           isCollapsed={isCollapsed}
           setIsCollapsed={setIsCollapsed}
         />
-
-
-
 
         <div className="flex-1 flex flex-col p-6 h-screen">
           {showAvatar && (

@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase/client";
 import { BookOpen, Heart, Trash2, X, Pin, Search, Grid, List, Plus, Edit, ArrowLeft, Send } from "lucide-react";
 import ManualImport from "./ManualImport";
+const [sendPopupBook, setSendPopupBook] = useState<ResearchItem | null>(null);
+
 
 interface ResearchItem {
   book_id: string;

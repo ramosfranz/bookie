@@ -198,7 +198,7 @@ const sendMessage = async (text: string) => {
           contacts={contacts}
           selectedContactId={selectedContactId}
           setSelectedContactId={(id) => {
-            setSelectedContactId(id);
+            setSelectedContactIdState(id);
             setShowAvatar(false);
           }}
           showAddContactPopup={showAddContactPopup}

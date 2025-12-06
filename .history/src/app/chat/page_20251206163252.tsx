@@ -194,20 +194,18 @@ const sendMessage = async (text: string) => {
       <Sidebar activeTab={activeTab} />
 
       <main className="flex flex-1">
-      <ContactSidebar
-          contacts={contacts}
-          selectedContactId={selectedContactId}
-          setSelectedContactId={(id) => {
-            setSelectedContactId(id);
-            setShowAvatar(false);
-          }}
-          showAddContactPopup={showAddContactPopup}
-          setShowAddContactPopup={setShowAddContactPopup}
-          isCollapsed={isCollapsed}
-          setIsCollapsed={setIsCollapsed}
-        />
-
-
+        <ContactSidebar
+  contacts={contacts}
+  selectedContactId={selectedContactId} // string | null
+  setSelectedContactId={(id: string | null) => {
+    setSelectedContactId(id);
+    setShowAvatar(false);
+  }}
+  showAddContactPopup={showAddContactPopup}
+  setShowAddContactPopup={setShowAddContactPopup}
+  isCollapsed={isCollapsed}
+  setIsCollapsed={setIsCollapsed}
+/>
 
 
         <div className="flex-1 flex flex-col p-6 h-screen">

@@ -2,7 +2,7 @@
 
 import { Dispatch, SetStateAction } from "react";
 
-export interface Contact {
+interface Contact {
   id: string;
   name: string;
   avatar: string;
@@ -11,7 +11,7 @@ export interface Contact {
 interface ContactSidebarProps {
   contacts: Contact[];
   selectedContactId: string | null;
-  setSelectedContactId: Dispatch<SetStateAction<string | null>>;
+  setSelectedContactId: Dispatch<SetStateAction<string>>;
   showAddContactPopup: boolean;
   setShowAddContactPopup: Dispatch<SetStateAction<boolean>>;
   isCollapsed: boolean;

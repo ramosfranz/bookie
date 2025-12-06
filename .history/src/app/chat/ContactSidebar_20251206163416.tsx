@@ -2,7 +2,7 @@
 
 import { Dispatch, SetStateAction } from "react";
 
-export interface Contact {
+interface Contact {
   id: string;
   name: string;
   avatar: string;

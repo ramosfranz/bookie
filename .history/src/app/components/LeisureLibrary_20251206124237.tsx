@@ -4,9 +4,6 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase/client";
 import { Heart, Trash2, X, BookOpen, Pin, Search, Grid, List, Plus, Edit, ArrowRight, Send } from "lucide-react";
 import ManualImport from "./ManualImport";
-import SendBookPopup from "../components/SendBookPopup";
-import type { Contact } from "../components/chat";
-
 
 interface LeisureItem {
   book_id: string;
@@ -53,7 +50,7 @@ declare global {
   }
 }
 
-export default function LeisureLibrary({ contacts }: { contacts: Contact[] }) {
+export default function LeisureLibrary() {
   const [items, setItems] = useState<LeisureItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
@@ -62,14 +59,6 @@ export default function LeisureLibrary({ contacts }: { contacts: Contact[] }) {
   const [viewerUrl, setViewerUrl] = useState<string | null>(null);
   const [viewerTitle, setViewerTitle] = useState<string>("");
   const [viewerType, setViewerType] = useState<"iframe" | "google">("iframe");
-  const [sendPopupOpen, setSendPopupOpen] = useState(false);
-  const [selectedBookTitle, setSelectedBookTitle] = useState("");
-
-  const handleOpenSendPopup = (title: string) => {
-  setSelectedBookTitle(title);
-  setSendPopupOpen(true);
-};
-
 
   // Filter and view states
   const [filter, setFilter] = useState<"all" | "favorites">("all");
@@ -490,12 +479,11 @@ export default function LeisureLibrary({ contacts }: { contacts: Contact[] }) {
                   </button>
 
                   <button
-                  onClick={() => handleOpenSendPopup(item.title)}
-                  className="text-gray-400 hover:text-blue-500"
-                >
-                  <Send size={16} />
-                </button>
-
+                    onClick={() => alert(`Send "${item.title}"`)}
+                    className="text-gray-400 hover:text-blue-500"
+                  >
+                    <Send size={16} />
+                  </button>
                 </div>
               </div>
 
@@ -513,27 +501,25 @@ export default function LeisureLibrary({ contacts }: { contacts: Contact[] }) {
                         <button
                           onClick={() => {
                             setEditingBook(item);
+                            setShowManualImport(true);
                             setActiveDropdown(null);
                           }}
-                          className="w-full text-left px-4 py-2 text-sm text-blue-600 hover:bg-gray-100 flex items-center gap-1"
+                          className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100"
                         >
-                          <Edit size={14} /> Edit
+                          Edit
                         </button>
                       )}
                       <button
-                        onClick={() => {
-                          moveToResearch(item);
-                          setActiveDropdown(null);
-                        }}
-                        className="w-full text-left px-4 py-2 text-sm text-purple-600 hover:bg-gray-100 flex items-center gap-1"
+                        onClick={() => moveToResearch(item)}
+                        className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100"
                       >
-                        <ArrowRight size={14} /> Move to Research
+                        Move to Research Library
                       </button>
                       <button
                         onClick={() => handleDelete(item.book_id)}
-                        className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100 flex items-center gap-1"
+                        className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-100"
                       >
-                        <Trash2 size={14} /> Delete
+                        Delete
                       </button>
                     </div>
                   </div>
@@ -544,234 +530,90 @@ export default function LeisureLibrary({ contacts }: { contacts: Contact[] }) {
         </ul>
       ) : (
         // GRID VIEW
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
           {filteredItems.map(item => (
-            <div key={item.book_id} className="bg-white rounded shadow overflow-hidden relative group">
-              {item.pinned && (
-                <div className="absolute top-1 left-1 bg-orange-500 text-white p-1 rounded z-10">
-                  <Pin size={12} />
-                </div>
-              )}
-
-              <div className="absolute top-1 right-1 z-10">
-                <button
-                  className="text-gray-500 hover:text-gray-700 bg-white rounded-full p-1"
-                  onClick={() => setActiveDropdown(activeDropdown === item.book_id ? null : item.book_id)}
-                >
-                  ⋮
-                </button>
-                {activeDropdown === item.book_id && (
-                  <div className="origin-top-right absolute right-0 mt-2 w-40 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-50">
-                    <div className="py-1">
-                      {item.source === "manual" && (
-                        <button
-                          onClick={() => {
-                            setEditingBook(item);
-                            setActiveDropdown(null);
-                          }}
-                          className="w-full text-left px-4 py-2 text-sm text-blue-600 hover:bg-gray-100 flex items-center gap-1"
-                        >
-                          <Edit size={14} /> Edit
-                        </button>
-                      )}
-                      <button
-                        onClick={() => {
-                          moveToResearch(item);
-                          setActiveDropdown(null);
-                        }}
-                        className="w-full text-left px-4 py-2 text-sm text-purple-600 hover:bg-gray-100 flex items-center gap-1"
-                      >
-                        <ArrowRight size={14} /> Move to Research
-                      </button>
-                      <button
-                        onClick={() => handleDelete(item.book_id)}
-                        className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100 flex items-center gap-1"
-                      >
-                        <Trash2 size={14} /> Delete
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
-
+            <div key={item.book_id} className="p-3 bg-white rounded shadow relative">
               {item.cover ? (
-                <img src={item.cover} alt={item.title} className="w-full h-48 object-cover" />
+                <img src={item.cover} alt={item.title} className="w-full h-40 object-cover rounded" />
               ) : (
-                <div className="w-full h-48 bg-gray-200 flex items-center justify-center">
-                  <BookOpen size={48} className="text-orange-500" />
+                <div className="w-full h-40 bg-gray-200 rounded flex items-center justify-center">
+                  <BookOpen size={32} className="text-orange-500" />
                 </div>
               )}
+              <strong className="block mt-2">{item.title}</strong>
+              {item.author && <p className="text-sm text-gray-600">{item.author}</p>}
 
-              <div className="p-2">
-                <p className="font-semibold text-sm line-clamp-2">{item.title}</p>
-                {item.author && <p className="text-xs text-gray-600 line-clamp-1">{item.author}</p>}
+              <div className="flex gap-2 mt-2">
+                <button
+                  className="p-1 bg-green-500 text-white rounded hover:bg-green-600 flex-1 text-xs"
+                  onClick={() => openBookReader(item)}
+                >
+                  Read
+                </button>
 
-                <div className="mt-2 flex items-center justify-between">
-                  <button
-                    className="px-2 py-1 bg-green-500 text-white text-xs rounded hover:bg-green-600"
-                    onClick={() => openBookReader(item)}
-                  >
-                    Read
-                  </button>
+                <button onClick={() => toggleFavorite(item.book_id)}>
+                  {favoriteBookIds.includes(item.book_id) ? (
+                    <Heart size={14} className="text-red-500 fill-red-500" />
+                  ) : (
+                    <Heart size={14} className="text-gray-400" />
+                  )}
+                </button>
 
-                  <div className="flex gap-2">
-                    <button onClick={() => toggleFavorite(item.book_id)}>
-                      {favoriteBookIds.includes(item.book_id) ? (
-                        <Heart size={14} className="text-red-500 fill-red-500" />
-                      ) : (
-                        <Heart size={14} className="text-gray-400" />
-                      )}
-                    </button>
+                <button onClick={() => togglePin(item)}>
+                  {item.pinned ? (
+                    <Pin size={14} className="text-orange-500 fill-orange-500" />
+                  ) : (
+                    <Pin size={14} className="text-gray-400" />
+                  )}
+                </button>
 
-                    <button onClick={() => togglePin(item)}>
-                      {item.pinned ? (
-                        <Pin size={14} className="text-orange-500 fill-orange-500" />
-                      ) : (
-                        <Pin size={14} className="text-gray-400" />
-                      )}
-                    </button>
-                  </div>
-                </div>
+                <button
+                  onClick={() => alert(`Send "${item.title}"`)}
+                  className="text-gray-400 hover:text-blue-500"
+                >
+                  <Send size={14} />
+                </button>
               </div>
             </div>
           ))}
         </div>
       )}
 
-      {viewerUrl && (
-        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
-          <div className="bg-white w-full h-full max-w-7xl max-h-[95vh] rounded-xl relative shadow-2xl flex flex-col">
-            <div className="bg-orange-500 text-white px-4 py-3 rounded-t-xl flex items-center justify-between">
-              <h3 className="font-semibold truncate">{viewerTitle}</h3>
-              <button
-                className="hover:bg-orange-600 rounded-full p-1 transition flex-shrink-0"
-                onClick={() => { setViewerUrl(null); setViewerTitle(""); setViewerType("iframe"); }}
-              >
-                <X size={24} />
-              </button>
-            </div>
+      {/* Manual import modal */}
+      {showManualImport && editingBook && (
+        <ManualImport
+          book={editingBook}
+          onClose={() => {
+            setShowManualImport(false);
+            setEditingBook(null);
+            loadItems();
+          }}
+        />
+      )}
 
+      {/* Book viewer */}
+      {viewerUrl && (
+        <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded w-full max-w-4xl max-h-full p-2 overflow-auto relative">
+            <button
+              className="absolute top-2 right-2 text-gray-700 hover:text-gray-900"
+              onClick={() => setViewerUrl(null)}
+            >
+              <X size={20} />
+            </button>
+            <h2 className="text-lg font-semibold mb-2">{viewerTitle}</h2>
             {viewerType === "iframe" ? (
-              <iframe src={viewerUrl!} className="w-full flex-1 rounded-b-xl" title="Document Viewer" allowFullScreen />
+              <iframe
+                src={viewerUrl}
+                className="w-full h-[80vh] border rounded"
+                frameBorder="0"
+              />
             ) : (
-              <div id="google-viewer-canvas" className="w-full flex-1 rounded-b-xl overflow-hidden" />
+              <div id="google-viewer-canvas" className="w-full h-[80vh]" />
             )}
           </div>
         </div>
       )}
-
-      {/* Floating Add Button */}
-      <button
-        onClick={() => setShowManualImport(true)}
-        className="fixed bottom-6 right-6 bg-orange-500 hover:bg-orange-600 text-white rounded-full p-4 shadow-lg transition-all hover:scale-110 z-40"
-        title="Import book manually"
-      >
-        <Plus size={24} />
-      </button>
-
-      {/* Manual Import Modal */}
-      {showManualImport && (
-        <ManualImport
-          onClose={() => setShowManualImport(false)}
-          onSuccess={loadItems}
-          libraryType="leisure"
-        />
-      )}
-
-      {/* Edit Book Modal */}
-      {editingBook && (
-        <ManualImport
-          onClose={() => setEditingBook(null)}
-          onSuccess={loadItems}
-          libraryType="leisure"
-          editMode={editingBook}
-        />
-      )}
-
-  {sendPopupOpen && (
-  <SendBookPopup
-    bookTitle={selectedBookTitle}
-    onClose={() => setSendPopupOpen(false)}
-  onSend={async (contactId) => {
-  console.log("=== SEND BOOK DEBUG ===");
-  console.log("Contact ID:", contactId);
-  console.log("Book Title:", selectedBookTitle);
-
-  try {
-    // 1. Insert user's book message
-    const bookMessage = {
-      contact_id: contactId,
-      sender: "user",
-      content: `Regarding this book, "${selectedBookTitle}" this book intrigues me.`,
-      timestamp: new Date().toISOString(),
-    };
-
-    console.log("Message to insert:", bookMessage);
-
-    const { data, error } = await supabase
-      .from("messages")
-      .insert([bookMessage])
-      .select();
-
-    console.log("Insert result:", data);
-    console.log("Insert error:", error);
-
-    if (error) {
-      console.error("Supabase error details:", error);
-      throw error;
-    }
-
-    console.log("✅ Book message sent!");
-
-    // 2. Get AI response
-    try {
-      console.log("🤖 Calling AI API...");
-      
-      const aiRes = await fetch("/api/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: bookMessage.content }),
-      });
-
-      const aiData = await aiRes.json();
-      console.log("AI Response data:", aiData);
-
-      if (aiData.answer) {
-        // 3. Insert AI response
-        const aiMessage = {
-          contact_id: contactId,
-          sender: "other",
-          content: aiData.answer,
-          timestamp: new Date().toISOString(),
-        };
-
-        const { error: aiError } = await supabase
-          .from("messages")
-          .insert([aiMessage])
-          .select();
-
-        if (aiError) {
-          console.error("Error inserting AI message:", aiError);
-        } else {
-          console.log("✅ AI response inserted!");
-        }
-      }
-    } catch (aiErr) {
-      console.error("AI API error:", aiErr);
-      // Continue - book was sent successfully even if AI fails
-    }
-
-    alert(`"${selectedBookTitle}" sent successfully!`);
-    setSendPopupOpen(false);
-  } catch (err: any) {
-    console.error("❌ Failed to send book:", err);
-    alert(`Failed to send book: ${err.message || "Unknown error"}`);
-  }
-}}
-  />
-)}
-
-
     </div>
   );
 }

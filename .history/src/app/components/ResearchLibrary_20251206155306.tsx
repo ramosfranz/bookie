@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase/client";
 import { BookOpen, Heart, Trash2, X, Pin, Search, Grid, List, Plus, Edit, ArrowLeft, Send } from "lucide-react";
 import ManualImport from "./ManualImport";
+const [sendPopupBook, setSendPopupBook] = useState<ResearchItem | null>(null);
+
 
 interface ResearchItem {
   book_id: string;
@@ -687,11 +689,12 @@ export default function ResearchLibrary() {
                     </button>
 
                     <button
-                        onClick={() => alert(`Send "${item.title}"`)}
-                        className="text-gray-400 hover:text-blue-500"
-                      >
-                        <Send size={16} />
-                      </button>
+                    onClick={() => setSendPopupBook(item)}
+                    className="text-gray-400 hover:text-blue-500"
+                  >
+                    <Send size={16} />
+                  </button>
+
                   </div>
                 </div>
               </div>

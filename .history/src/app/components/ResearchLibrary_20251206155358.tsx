@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase/client";
 import { BookOpen, Heart, Trash2, X, Pin, Search, Grid, List, Plus, Edit, ArrowLeft, Send } from "lucide-react";
 import ManualImport from "./ManualImport";
+const [sendPopupBook, setSendPopupBook] = useState<ResearchItem | null>(null);
+
 
 interface ResearchItem {
   book_id: string;
@@ -687,11 +689,12 @@ export default function ResearchLibrary() {
                     </button>
 
                     <button
-                        onClick={() => alert(`Send "${item.title}"`)}
-                        className="text-gray-400 hover:text-blue-500"
-                      >
-                        <Send size={16} />
-                      </button>
+                    onClick={() => setSendPopupBook(item)}
+                    className="text-gray-400 hover:text-blue-500"
+                  >
+                    <Send size={16} />
+                  </button>
+
                   </div>
                 </div>
               </div>
@@ -762,6 +765,50 @@ export default function ResearchLibrary() {
           editMode={editingBook}
         />
       )}
+
+      {sendPopupBook && (
+  <SendBookPopup
+    bookTitle={sendPopupBook.title}
+    onClose={() => setSendPopupBook(null)}
+    onSend={async (contactId: string) => {
+      try {
+        const { data: userData } = await supabase.auth.getUser();
+        if (!userData.user) return;
+
+        const userId = userData.user.id;
+
+        // Create message content
+        const messageContent = JSON.stringify({
+          type: "book",
+          bookId: sendPopupBook.book_id,
+          title: sendPopupBook.title,
+          cover: sendPopupBook.cover,
+          source: sendPopupBook.source,
+        });
+
+        // Insert into "messages" table
+        const { error } = await supabase.from("messages").insert([
+          {
+            sender_id: userId,
+            receiver_id: contactId,
+            content: messageContent,
+            message_type: "book",
+            created_at: new Date().toISOString(),
+          },
+        ]);
+
+        if (error) throw error;
+
+        alert(`"${sendPopupBook.title}" sent successfully!`);
+        setSendPopupBook(null);
+      } catch (err) {
+        console.error("Failed to send book:", err);
+        alert("Failed to send book. Please try again.");
+      }
+    }}
+  />
+)}
+
     </div>
   );
 }

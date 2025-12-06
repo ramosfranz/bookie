@@ -101,84 +101,84 @@ export default function ChatPage() {
   }, [selectedContact?.messages, aiTyping]);
 
   // Send message and handle AI response
-const sendMessage = async (text: string) => {
-  if (!text.trim() || !selectedContactId) return;
+  const sendMessage = async (text: string) => {
+    if (!text.trim() || !selectedContactId) return;
 
-  const timestamp = new Date().toISOString();
-  const userMessage: Omit<Message, "id"> = {
-    contact_id: selectedContactId,
-    sender: "user",
-    content: text,
-    timestamp,
-  };
+    const timestamp = new Date().toISOString();
+    const userMessage: Omit<Message, "id"> = {
+      contact_id: selectedContactId,
+      sender: "user",
+      content: text,
+      timestamp,
+    };
 
-  try {
-    // Insert user message into Supabase
-    const { data: insertedUser, error: userError } = await supabase
-      .from("messages")
-      .insert([userMessage])
-      .select();
-
-    if (userError) {
-      console.error("Error sending user message:", userError);
-      return;
-    }
-
-    setContacts(prev =>
-      prev.map(c =>
-        c.id === selectedContactId
-          ? { ...c, messages: [...c.messages, insertedUser![0]] }
-          : c
-      )
-    );
-
-    // Show AI typing
-    setAiTyping(true);
-
-    // Call Hugging Face API
-    const res = await fetch("/api/chat", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ message: text }),
-    });
-
-    const data = await res.json();
-    console.log("AI Response:", data);
-
-    // NOTE: Use 'data.answer' here, not 'data.reply'
-    if (data.answer) {
-      const aiMessage: Omit<Message, "id"> = {
-        contact_id: selectedContactId,
-        sender: "other",
-        content: data.answer, // actual AI response
-        timestamp: new Date().toISOString(),
-      };
-
-      // Insert AI message into Supabase
-      const { data: insertedAI, error: aiError } = await supabase
+    try {
+      // Insert user message into Supabase
+      const { data: insertedUser, error: userError } = await supabase
         .from("messages")
-        .insert([aiMessage])
+        .insert([userMessage])
         .select();
 
-      if (aiError) {
-        console.error("Error inserting AI message:", aiError);
+      if (userError) {
+        console.error("Error sending user message:", userError);
         return;
       }
 
       setContacts(prev =>
         prev.map(c =>
           c.id === selectedContactId
-            ? { ...c, messages: [...c.messages, insertedAI![0]] }
+            ? { ...c, messages: [...c.messages, insertedUser![0]] }
             : c
         )
       );
+
+      // Show AI typing
+      setAiTyping(true);
+
+      // Call Hugging Face API
+      const res = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: text }),
+      });
+
+      const data = await res.json();
+      console.log("AI Response:", data);
+
+      // NOTE: Use 'data.answer' here, not 'data.reply'
+      if (data.answer) {
+        const aiMessage: Omit<Message, "id"> = {
+          contact_id: selectedContactId,
+          sender: "other",
+          content: data.answer, // actual AI response
+          timestamp: new Date().toISOString(),
+        };
+
+        // Insert AI message into Supabase
+        const { data: insertedAI, error: aiError } = await supabase
+          .from("messages")
+          .insert([aiMessage])
+          .select();
+
+        if (aiError) {
+          console.error("Error inserting AI message:", aiError);
+          return;
+        }
+
+        setContacts(prev =>
+          prev.map(c =>
+            c.id === selectedContactId
+              ? { ...c, messages: [...c.messages, insertedAI![0]] }
+              : c
+          )
+        );
+      }
+    } catch (err) {
+      console.error("Error sending message:", err);
+    } finally {
+      setAiTyping(false);
     }
-  } catch (err) {
-    console.error("Error sending message:", err);
-  } finally {
-    setAiTyping(false);
-  }
-};
+  };
 
   const handleSend = () => {
     sendMessage(newMessage);
@@ -194,21 +194,18 @@ const sendMessage = async (text: string) => {
       <Sidebar activeTab={activeTab} />
 
       <main className="flex flex-1">
-      <ContactSidebar
+        <ContactSidebar
           contacts={contacts}
-          selectedContactId={selectedContactId}
-          setSelectedContactId={(id) => {
-            setSelectedContactId(id);
-            setShowAvatar(false);
+          selectedContactId={selectedContactId || ""} {/* ✅ Fixed: provide empty string fallback */}
+          setSelectedContactId={(id) => { 
+            setSelectedContactId(typeof id === 'function' ? id(selectedContactId) : id); {/* ✅ Fixed: handle function or value */}
+            setShowAvatar(false); 
           }}
           showAddContactPopup={showAddContactPopup}
           setShowAddContactPopup={setShowAddContactPopup}
           isCollapsed={isCollapsed}
           setIsCollapsed={setIsCollapsed}
         />
-
-
-
 
         <div className="flex-1 flex flex-col p-6 h-screen">
           {showAvatar && (
@@ -316,21 +313,22 @@ const sendMessage = async (text: string) => {
         isOpen={showInfoPopup}
         onClose={() => setShowInfoPopup(false)}
         friend={{
-          id: selectedContact?.id!,
-          name: selectedContact?.name!,
-          nickname: selectedContact?.name!,
+          id: selectedContact?.id || "", {/* ✅ Fixed: provide empty string fallback */}
+          name: selectedContact?.name || "", {/* ✅ Fixed */}
+          nickname: selectedContact?.name || "", {/* ✅ Fixed */}
           isGroup: selectedContact?.isGroup || false,
           members: selectedContact?.members || [],
           sharedHistory: selectedContact?.sharedHistory || [],
         }}
-        allFriends={[]} // pass friends if needed
+        allFriends={[]}
         onUpdateNicknameOrGroupName={async (newName) => {
+          if (!selectedContact?.id) return; {/* ✅ Fixed: guard clause */}
           await supabase
             .from("contacts")
             .update({ name: newName })
-            .eq("id", selectedContact?.id);
+            .eq("id", selectedContact.id);
           setContacts(prev =>
-            prev.map(c => c.id === selectedContact?.id ? { ...c, name: newName } : c)
+            prev.map(c => c.id === selectedContact.id ? { ...c, name: newName } : c)
           );
         }}
         onUnfriendOrLeaveGroup={() => {}}
