@@ -1,0 +1,6 @@
+.bookieBackground {
+  background-image: url("/image/bg_try.gif"), url("/image/bookiebg1.png");
+  background-size: auto, 20%;   /* multiple background layers */
+  background-repeat: auto, space;
+}
+

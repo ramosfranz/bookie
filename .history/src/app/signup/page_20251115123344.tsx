@@ -1,0 +1,61 @@
+"use client";
+
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { signUp } from "@/lib/supabase/auth";
+
+export default function SignupPage() {
+  const router = useRouter();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
+
+  const handleSignup = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setErrorMsg("");
+
+    const { data, error } = await signUp(email, password);
+
+    if (error) {
+      setErrorMsg(error.message);
+    } else {
+      alert("Signup successful! Please check your email for verification.");
+      router.push("/login");
+    }
+    setLoading(false);
+  };
+
+  return (
+    <div className="flex flex-col items-center justify-center min-h-screen bg-indigo-50 p-6">
+      <h1 className="text-4xl font-bold mb-6 text-purple-700">Create Account</h1>
+      <form onSubmit={handleSignup} className="flex flex-col gap-4 w-full max-w-sm">
+        <input
+          type="email"
+          placeholder="Email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          className="px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-500"
+          required
+        />
+        <input
+          type="password"
+          placeholder="Password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          className="px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-500"
+          required
+        />
+        {errorMsg && <p className="text-red-600">{errorMsg}</p>}
+        <button
+          type="submit"
+          className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition"
+          disabled={loading}
+        >
+          {loading ? "Signing up..." : "Sign Up"}
+        </button>
+      </form>
+    </div>
+  );
+}

@@ -1,0 +1,26 @@
+.pixelButton {
+  display: inline-block;
+  font-size: 1rem;
+  color: white; /* you can customize */
+  border-radius: 10; /* or var(--btn-radius) if you want rounded */
+  border: 2px solid #d4783a; /* default outline */
+  background: #f79847; /* default background */
+  box-shadow: 0px 4px 0 #d4783a;
+  cursor: pointer;
+  text-align: center;
+  white-space: nowrap;
+  transition: transform 0.1s ease, box-shadow 0.1s ease;
+  image-rendering: pixelated;
+  margin: 0.5%;
+  padding: 0.5rem 1rem;
+}
+
+.pixelButton:hover {
+  background: linear-gradient(to bottom, #ffa9b8, #ff605f);
+  border-color: #ff1a14;
+}
+
+.pixelButton:active {
+  transform: translateY(4px);
+  box-shadow: 0 0 #000;
+}

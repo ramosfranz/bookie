@@ -1,0 +1,17 @@
+.bookieBackground {
+  background-image: url("/image/sparkle.gif"), url("/image/bg_try.gif"), url("/image/bookiebg1.png");
+  background-size: auto, auto, 20%;   /* multiple background layers */
+  background-repeat: auto, auto, space;
+}
+
+.pixelated {
+  image-rendering: pixelated;       /* Modern browsers */
+  image-rendering: crisp-edges;     /* Fallback */
+  -ms-interpolation-mode: nearest-neighbor; /* IE fallback */
+}
+
+.bookieBgVar1 {
+   background-image: url("/image/bookiebg1.png");
+  background-size: 20%;   /* multiple background layers */
+  background-repeat: space;
+}
