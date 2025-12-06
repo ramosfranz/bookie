@@ -76,7 +76,7 @@ export default function ProfilePage() {
 
   return (
     <div className="min-h-screen flex bookieBackground">
-      <Sidebar activeTab="profile" />
+      <Sidebar activeTab="profile" user={user} />
 
       <main className="flex-1 p-6">
         <h1 className="text-3xl font-bold mb-6" style={{ color: "#f67129" }}>Profile</h1>

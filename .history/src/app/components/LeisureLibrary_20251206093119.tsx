@@ -73,7 +73,7 @@ export default function LeisureLibrary() {
     const userId = userData.user.id;
 
     const { data, error } = await supabase
-      .from("user_library")
+      .from<BookEntry>("user_library")
       .select(`
         library_type,
         books (
@@ -96,9 +96,8 @@ export default function LeisureLibrary() {
       console.error("Fetch error:", error);
       setItems([]);
     } else if (data) {
-      const typedData = data as unknown as BookEntry[];
       setItems(
-        typedData.map((entry) => ({
+        data.map((entry) => ({
           book_id: entry.books.id,
           title: entry.books.title,
           author: entry.books.author,
@@ -204,9 +203,7 @@ export default function LeisureLibrary() {
       )
       .subscribe();
 
-    return () => {
-      supabase.removeChannel(channel);
-    };
+    return () => supabase.removeChannel(channel);
   }, []);
 
   if (loading) return <p>Loading...</p>;

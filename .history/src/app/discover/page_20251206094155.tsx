@@ -112,7 +112,7 @@ export default function DiscoverPage() {
   const dummyUser = { id: "0001", email: "test@example.com", username: "TestUser" };
   const [user] = useState(dummyUser);
 
-  const [activeTab] = useState<"dashboard" | "discover" | "chat">("discover");
+  const [activeTab, setActiveTab] = useState<"dashboard" | "discover" | "chat">("discover");
   const [libraryTab, setLibraryTab] = useState<"leisure" | "research">("leisure");
 
   const [searchQuery, setSearchQuery] = useState("");

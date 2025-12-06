@@ -112,7 +112,7 @@ export default function DiscoverPage() {
   const dummyUser = { id: "0001", email: "test@example.com", username: "TestUser" };
   const [user] = useState(dummyUser);
 
-  const [activeTab] = useState<"dashboard" | "discover" | "chat">("discover");
+  const [activeTab, setActiveTab] = useState<"dashboard" | "discover" | "chat">("discover");
   const [libraryTab, setLibraryTab] = useState<"leisure" | "research">("leisure");
 
   const [searchQuery, setSearchQuery] = useState("");
@@ -160,19 +160,17 @@ export default function DiscoverPage() {
       fetchPromises.push(
         fetch(`https://openlibrary.org/search.json?q=subject:fiction&has_fulltext=true&limit=100`)
           .then((res) => res.json())
-          .then((data: OpenLibraryResponse) => (data.docs || [])
-            .filter((doc) => doc.ia?.[0])
-            .map((doc) => ({
-              id: `openlibrary-${doc.key}`,
-              title: doc.title,
-              author: doc.author_name?.[0],
-              cover: doc.cover_i ? `https://covers.openlibrary.org/b/id/${doc.cover_i}-M.jpg` : undefined,
-              year: doc.first_publish_year,
-              type: "leisure" as const,
-              subjects: doc.subject || [],
-              formats: { ia: doc.ia![0] },
-              source: "openlibrary" as const,
-            })))
+          .then((data: OpenLibraryResponse) => (data.docs || []).map((doc) => ({
+            id: `openlibrary-${doc.key}`,
+            title: doc.title,
+            author: doc.author_name?.[0],
+            cover: doc.cover_i ? `https://covers.openlibrary.org/b/id/${doc.cover_i}-M.jpg` : undefined,
+            year: doc.first_publish_year,
+            type: "leisure" as const,
+            subjects: doc.subject || [],
+            formats: { ia: doc.ia?.[0] },
+            source: "openlibrary" as const,
+          })).filter((book: Book) => book.formats?.ia))
           .catch(() => [])
       );
 
@@ -219,19 +217,17 @@ export default function DiscoverPage() {
       fetchPromises.push(
         fetch(`https://openlibrary.org/search.json?q=subject:(computer+science+OR+mathematics+OR+physics+OR+engineering)&has_fulltext=true&limit=50`)
           .then((res) => res.json())
-          .then((data: OpenLibraryResponse) => (data.docs || [])
-            .filter((doc) => doc.ia?.[0])
-            .map((doc) => ({
-              id: `openlibrary-${doc.key}`,
-              title: doc.title,
-              author: doc.author_name?.[0],
-              cover: doc.cover_i ? `https://covers.openlibrary.org/b/id/${doc.cover_i}-M.jpg` : undefined,
-              year: doc.first_publish_year,
-              type: "research" as const,
-              subjects: doc.subject || [],
-              formats: { ia: doc.ia![0] },
-              source: "openlibrary" as const,
-            })))
+          .then((data: OpenLibraryResponse) => (data.docs || []).map((doc) => ({
+            id: `openlibrary-${doc.key}`,
+            title: doc.title,
+            author: doc.author_name?.[0],
+            cover: doc.cover_i ? `https://covers.openlibrary.org/b/id/${doc.cover_i}-M.jpg` : undefined,
+            year: doc.first_publish_year,
+            type: "research" as const,
+            subjects: doc.subject || [],
+            formats: { ia: doc.ia?.[0] },
+            source: "openlibrary" as const,
+          })).filter((book: Book) => book.formats?.ia))
           .catch(() => [])
       );
 

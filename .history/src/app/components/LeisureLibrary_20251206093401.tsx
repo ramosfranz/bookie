@@ -204,9 +204,7 @@ export default function LeisureLibrary() {
       )
       .subscribe();
 
-    return () => {
-      supabase.removeChannel(channel);
-    };
+    return () => supabase.removeChannel(channel);
   }, []);
 
   if (loading) return <p>Loading...</p>;

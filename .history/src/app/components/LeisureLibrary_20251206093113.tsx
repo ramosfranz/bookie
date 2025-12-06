@@ -54,7 +54,6 @@ export default function LeisureLibrary() {
   const [loading, setLoading] = useState(true);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
 
-  // --- Viewer states ---
   const [viewerUrl, setViewerUrl] = useState<string | null>(null);
   const [viewerTitle, setViewerTitle] = useState<string>("");
   const [viewerType, setViewerType] = useState<"iframe" | "google">("iframe");
@@ -73,7 +72,7 @@ export default function LeisureLibrary() {
     const userId = userData.user.id;
 
     const { data, error } = await supabase
-      .from("user_library")
+      .from<"user_library", BookEntry>("user_library")
       .select(`
         library_type,
         books (
@@ -96,9 +95,8 @@ export default function LeisureLibrary() {
       console.error("Fetch error:", error);
       setItems([]);
     } else if (data) {
-      const typedData = data as unknown as BookEntry[];
       setItems(
-        typedData.map((entry) => ({
+        data.map((entry) => ({
           book_id: entry.books.id,
           title: entry.books.title,
           author: entry.books.author,
@@ -117,11 +115,7 @@ export default function LeisureLibrary() {
 
   // --- Delete an item ---
   async function handleDelete(book_id: string) {
-    const { error } = await supabase
-      .from("user_library")
-      .delete()
-      .eq("book_id", book_id);
-
+    const { error } = await supabase.from("user_library").delete().eq("book_id", book_id);
     if (error) console.error("Delete error:", error);
     else loadItems();
   }
@@ -134,29 +128,22 @@ export default function LeisureLibrary() {
     if (book.source === "gutendex") {
       const htmlUrl = book.formats?.["text/html"];
       const epubUrl = book.formats?.["application/epub+zip"];
-      if (htmlUrl) {
-        setViewerUrl(htmlUrl);
-        setViewerType("iframe");
-      } else if (epubUrl) {
+      if (htmlUrl) setViewerUrl(htmlUrl);
+      else if (epubUrl)
         setViewerUrl(`https://futurepress.github.io/epubjs-reader/?bookPath=${encodeURIComponent(epubUrl)}`);
-        setViewerType("iframe");
-      }
+      setViewerType("iframe");
     } else if (book.source === "openlibrary") {
       const iaId = book.formats?.ia;
       if (iaId) {
         setViewerUrl(`https://archive.org/embed/${iaId}`);
         setViewerType("iframe");
       }
-    } else if (book.source === "googlebooks") {
-      if (book.googleBooksId) {
-        setViewerUrl(book.googleBooksId);
-        setViewerType("google");
-      }
-    } else if (book.source === "arxiv") {
-      if (book.pdfUrl) {
-        setViewerUrl(book.pdfUrl);
-        setViewerType("iframe");
-      }
+    } else if (book.source === "googlebooks" && book.googleBooksId) {
+      setViewerUrl(book.googleBooksId);
+      setViewerType("google");
+    } else if (book.source === "arxiv" && book.pdfUrl) {
+      setViewerUrl(book.pdfUrl);
+      setViewerType("iframe");
     }
   };
 
@@ -166,10 +153,7 @@ export default function LeisureLibrary() {
     script.src = "https://www.google.com/books/jsapi.js";
     script.async = true;
     document.body.appendChild(script);
-
-    return () => {
-      if (document.body.contains(script)) document.body.removeChild(script);
-    };
+    return () => document.body.contains(script) && document.body.removeChild(script);
   }, []);
 
   // --- Initialize Google Books viewer ---
@@ -197,16 +181,10 @@ export default function LeisureLibrary() {
     loadItems();
     const channel = supabase
       .channel("user_library_changes")
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "user_library" },
-        () => loadItems()
-      )
+      .on("postgres_changes", { event: "*", schema: "public", table: "user_library" }, () => loadItems())
       .subscribe();
 
-    return () => {
-      supabase.removeChannel(channel);
-    };
+    return () => supabase.removeChannel(channel);
   }, []);
 
   if (loading) return <p>Loading...</p>;
@@ -230,7 +208,9 @@ export default function LeisureLibrary() {
               <div className="flex-1">
                 <strong>{item.title}</strong>
                 {item.author && <p className="text-sm text-gray-600">{item.author}</p>}
-                <p className="text-sm text-gray-600">Progress: {item.progress}% | Status: {item.status}</p>
+                <p className="text-sm text-gray-600">
+                  Progress: {item.progress}% | Status: {item.status}
+                </p>
 
                 <div className="mt-1 flex items-center gap-2">
                   <button
@@ -291,12 +271,7 @@ export default function LeisureLibrary() {
             </div>
 
             {viewerType === "iframe" ? (
-              <iframe
-                src={viewerUrl}
-                className="w-full flex-1 rounded-b-xl"
-                title="Document Viewer"
-                allowFullScreen
-              />
+              <iframe src={viewerUrl!} className="w-full flex-1 rounded-b-xl" title="Document Viewer" allowFullScreen />
             ) : (
               <div id="google-viewer-canvas" className="w-full flex-1 rounded-b-xl overflow-hidden" />
             )}
