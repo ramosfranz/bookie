@@ -40,3 +40,19 @@
 - JSONB for storing structured data in Supabase
 - Custom components: Sidebar, LeisureLibrary, ResearchLibrary, AvatarBuilder
 
+---
+
+## Usage
+
+Access the live deployed application here:
+
+👉 Live App: [https://bookie-cat.vercel.app/](https://bookie-cat.vercel.app/)
+
+🔐 Demo Login Credentials
+
+Use the following test account to explore the app:
+
+Email: ramosfrancezca@gmail.com
+P: k3wV3n0mjKCUelf3
+
+
