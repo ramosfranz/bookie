@@ -1,16 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase/client";
 
-// Define type for your table row
-interface LeisureRow {
-  id: string;
-  user_id: string;
-  book_id: string;
-  title: string;
-  progress?: number;
-  status?: string;
-}
-
 // GET handler
 export async function GET(
   req: NextRequest,
@@ -19,7 +9,7 @@ export async function GET(
   try {
     const { id } = params;
 
-    let query = supabase.from("leisure_library").select("*");
+    let query = supabase.from("research_library").select("*");
     if (id && id !== "all") query = query.eq("id", id);
 
     const { data, error } = await query;
@@ -29,22 +19,20 @@ export async function GET(
     }
 
     return NextResponse.json({ success: true, data });
-  } catch (err) {
-    const message =
-      err instanceof Error ? err.message : "Unknown error occurred";
-    return NextResponse.json({ success: false, error: message });
+  } catch (err: any) {
+    return NextResponse.json({ success: false, error: err.message });
   }
 }
 
 // POST handler
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json() as Omit<LeisureRow, "id">;
-    const { user_id, book_id, title, progress, status } = body;
+    const body = await req.json();
+    const { user_id, title, pdf_url, authors, tags } = body;
 
     const { data, error } = await supabase
-      .from("leisure_library")
-      .insert([{ user_id, book_id, title, progress, status }])
+      .from("research_library")
+      .insert([{ user_id, title, pdf_url, authors, tags }])
       .select();
 
     if (error) {
@@ -52,10 +40,8 @@ export async function POST(req: NextRequest) {
     }
 
     return NextResponse.json({ success: true, data });
-  } catch (err) {
-    const message =
-      err instanceof Error ? err.message : "Unknown error occurred";
-    return NextResponse.json({ success: false, error: message });
+  } catch (err: any) {
+    return NextResponse.json({ success: false, error: err.message });
   }
 }
 
@@ -66,10 +52,10 @@ export async function PUT(
 ) {
   try {
     const { id } = params;
-    const body = await req.json() as Partial<Omit<LeisureRow, "id">>;
+    const body = await req.json();
 
     const { data, error } = await supabase
-      .from("leisure_library")
+      .from("research_library")
       .update(body)
       .eq("id", id)
       .select();
@@ -79,10 +65,8 @@ export async function PUT(
     }
 
     return NextResponse.json({ success: true, data });
-  } catch (err) {
-    const message =
-      err instanceof Error ? err.message : "Unknown error occurred";
-    return NextResponse.json({ success: false, error: message });
+  } catch (err: any) {
+    return NextResponse.json({ success: false, error: err.message });
   }
 }
 
@@ -95,7 +79,7 @@ export async function DELETE(
     const { id } = params;
 
     const { data, error } = await supabase
-      .from("leisure_library")
+      .from("research_library")
       .delete()
       .eq("id", id)
       .select();
@@ -105,9 +89,7 @@ export async function DELETE(
     }
 
     return NextResponse.json({ success: true, data });
-  } catch (err) {
-    const message =
-      err instanceof Error ? err.message : "Unknown error occurred";
-    return NextResponse.json({ success: false, error: message });
+  } catch (err: any) {
+    return NextResponse.json({ success: false, error: err.message });
   }
 }

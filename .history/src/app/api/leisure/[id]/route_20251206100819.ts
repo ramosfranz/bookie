@@ -19,7 +19,7 @@ export async function GET(
   try {
     const { id } = params;
 
-    let query = supabase.from("leisure_library").select("*");
+    let query = supabase.from<LeisureRow>("leisure_library").select("*");
     if (id && id !== "all") query = query.eq("id", id);
 
     const { data, error } = await query;
@@ -39,11 +39,11 @@ export async function GET(
 // POST handler
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json() as Omit<LeisureRow, "id">;
+    const body: Omit<LeisureRow, "id"> = await req.json();
     const { user_id, book_id, title, progress, status } = body;
 
     const { data, error } = await supabase
-      .from("leisure_library")
+      .from<LeisureRow>("leisure_library")
       .insert([{ user_id, book_id, title, progress, status }])
       .select();
 
@@ -66,10 +66,10 @@ export async function PUT(
 ) {
   try {
     const { id } = params;
-    const body = await req.json() as Partial<Omit<LeisureRow, "id">>;
+    const body: Partial<Omit<LeisureRow, "id">> = await req.json();
 
     const { data, error } = await supabase
-      .from("leisure_library")
+      .from<LeisureRow>("leisure_library")
       .update(body)
       .eq("id", id)
       .select();
@@ -95,7 +95,7 @@ export async function DELETE(
     const { id } = params;
 
     const { data, error } = await supabase
-      .from("leisure_library")
+      .from<LeisureRow>("leisure_library")
       .delete()
       .eq("id", id)
       .select();
